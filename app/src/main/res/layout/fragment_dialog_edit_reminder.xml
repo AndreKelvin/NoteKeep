@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".EditReminderDialogFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
+        android:id="@+id/textViewEditTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:paddingStart="10dp"
+        android:paddingLeft="10dp"
+        android:text="Edit Reminder"
+        android:textColor="#FFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textEditSelectTime"
+        android:layout_width="341dp"
+        android:layout_height="26dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:hint="Select Time"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewEditTime" />
+
+    <TextView
+        android:id="@+id/textEditSelectDate"
+        android:layout_width="341dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:hint="Select Date"
+        app:layout_constraintEnd_toEndOf="@+id/textEditSelectTime"
+        app:layout_constraintStart_toStartOf="@+id/textEditSelectTime"
+        app:layout_constraintTop_toBottomOf="@+id/textEditSelectTime" />
+
+    <Spinner
+        android:id="@+id/spinnerEdit"
+        android:layout_width="341dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="@+id/textEditSelectDate"
+        app:layout_constraintStart_toStartOf="@+id/textEditSelectDate"
+        app:layout_constraintTop_toBottomOf="@+id/textEditSelectDate" />
+
+    <Button
+        android:id="@+id/buttonSaveEditReminder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/corner_radius"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:text="Save Changes"
+        android:textAllCaps="false"
+        android:textColor="#FFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/spinnerEdit"
+        app:layout_constraintHorizontal_bias="0.528"
+        app:layout_constraintStart_toStartOf="@+id/spinnerEdit"
+        app:layout_constraintTop_toBottomOf="@+id/spinnerEdit"
+        app:layout_constraintVertical_bias="0.088" />
+
+    <Button
+        android:id="@+id/buttonEditCancelReminder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/cancel_corner_radius"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:text="Cancel Reminder"
+        android:textAllCaps="false"
+        android:textColor="#FFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/buttonSaveEditReminder"
+        app:layout_constraintStart_toStartOf="@+id/buttonSaveEditReminder"
+        app:layout_constraintTop_toBottomOf="@+id/buttonSaveEditReminder" />
+
+</android.support.constraint.ConstraintLayout>

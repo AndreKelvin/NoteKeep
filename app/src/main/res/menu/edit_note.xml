@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/edit_note"
+        android:icon="@drawable/ic_save"
+        android:title="Edit"
+        app:showAsAction="ifRoom"
+        android:visible="false"/>
+
+    <item
+        android:id="@+id/editReminder"
+        android:icon="@drawable/ic_add_alert"
+        android:title="Reminder"
+        app:showAsAction="ifRoom"
+        android:visible="false"/>
+
+</menu>
