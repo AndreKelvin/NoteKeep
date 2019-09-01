@@ -121,7 +121,7 @@ public class EditNoteActivity extends AppCompatActivity implements EditReminderD
                     Calendar calendar = new GregorianCalendar();
                     calendar.setTimeInMillis(cursor.getLong(4));
                     Date currentDate = new Date();
-                    if (calendar.getTime().before(currentDate) || (calendar.getTime().equals(currentDate))) {
+                    if (calendar.getTime().before(currentDate) || calendar.getTime().equals(currentDate)) {
                         reminderEditIcon.setImageResource(R.drawable.ic_notifications_off);
                     }
                 } else if (cursor.getString(6).equals("Daily")) {

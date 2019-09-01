@@ -96,6 +96,8 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
                                 pendingIntentID,
                                 reminderRepeatItem);
 
+
+
                         //Get inserted Note ID to be passed to broadcast receiver class
                         //Where the notification has Pending Intent that is going to open EditNoteActivity
                         //And broadcast receiver is going to pass this ID as Bundle to EditNoteActivity
@@ -136,7 +138,7 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
                         }
                         //Monthly Repeat
                         else if (reminderRepeatItem.contentEquals("Monthly")) {
-                            // get todays date
+                            // get today's date
                             Calendar cal = Calendar.getInstance();
                             // get current month
                             int currentMonth = calendar.get(Calendar.MONTH);

@@ -45,7 +45,7 @@ public class ReminderReceiver extends BroadcastReceiver {
         and NoteTitle will be adding the newly passed note title then assign it back to noteTitle String
         after that, put the newly assigned values to SharedPreference
          */
-        SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor=sharedPreferences.edit();
         if (sharedPreferences.getInt("NumberOfNotification",0)==0){
             editor.putInt("NumberOfNotification",1);
