@@ -17,14 +17,14 @@ public class ResetAlarmReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
+        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             //Toast.makeText(context, "Alarm Restarted", Toast.LENGTH_LONG).show();
             /*
             Select all Note Reminder from Db
             Get the Time Milli seconds and convert to Time
             Check if the Time is equal or after current mobile time
             Set Alarm
-             */
+            */
             NoteDB noteDB = new NoteDB(context);
             Calendar calendar = new GregorianCalendar();
             Date currentDate = new Date();

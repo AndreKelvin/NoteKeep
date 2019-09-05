@@ -2,8 +2,10 @@ package com.notekeep.andrekelvin.notekeep;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
@@ -300,6 +302,7 @@ public class EditNoteActivity extends AppCompatActivity implements EditReminderD
                         //}
                     }
                     noteDB.close();
+
                     finish();
                 }
                 return true;
