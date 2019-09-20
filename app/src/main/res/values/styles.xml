@@ -9,6 +9,11 @@
 
         <item name="actionModeBackground">@color/colorPrimary</item>
         <item name="windowActionModeOverlay">true</item>
+
+    </style>
+
+    <style name="SwitchTheme" parent="Theme.AppCompat.Light">
+        <item name="colorControlActivated">@color/colorPrimary</item>
     </style>
 
 </resources>

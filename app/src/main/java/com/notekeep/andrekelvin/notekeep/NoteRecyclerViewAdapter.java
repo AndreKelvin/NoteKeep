@@ -2,8 +2,10 @@ package com.notekeep.andrekelvin.notekeep;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -24,7 +26,8 @@ public class NoteRecyclerViewAdapter extends RecyclerView.Adapter<NoteRecyclerVi
 
     private List<NoteItems> noteList, selectedItemID, filterNoteList;
     private Context context;
-    private OnItemLongClick receiver;
+    private OnItemLongClick onItemLongClickReceiver;
+    private OnItemClick onItemClickReceiver;
     private NoteDB noteDB;
 
     /**
@@ -32,7 +35,18 @@ public class NoteRecyclerViewAdapter extends RecyclerView.Adapter<NoteRecyclerVi
      * to be able to highlight the selected item view
      */
     public interface OnItemLongClick {
-        void OnItemLongClick();
+        void onItemLongClick();
+    }
+
+    /**
+     * This interface will be called when a view is clicked
+     * and the Contextual Action Mode is Visible
+     * this will make sure when user long click to select an item
+     * user will be able to click to select next item in recycler view
+     * to be able to highlight the selected item view
+     */
+    public interface OnItemClick {
+        void onItemClick();
     }
 
     public NoteRecyclerViewAdapter(List<NoteItems> noteList, Context context, List<NoteItems> selectedItemID) {
@@ -138,9 +152,23 @@ public class NoteRecyclerViewAdapter extends RecyclerView.Adapter<NoteRecyclerVi
         noteViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent editNoteIntent = new Intent(context, EditNoteActivity.class);
-                editNoteIntent.putExtra("NOTE_ID", noteList.get(position).getId());
-                context.startActivity(editNoteIntent);
+                SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(context);
+                boolean itemIsLongClicked=sharedPreferences.getBoolean(MainActivity.ITEM_IS_LONG_CLICKED,false);
+
+                if (itemIsLongClicked){
+                    if (selectedItemID.contains(noteItems)) {
+                        selectedItemID.remove(noteItems);
+                        unHighlightView(noteViewHolder);
+                    } else {
+                        selectedItemID.add(noteItems);
+                        highlightView(noteViewHolder);
+                    }
+                    onItemClickReceiver.onItemClick();
+                }else {
+                    Intent editNoteIntent = new Intent(context, EditNoteActivity.class);
+                    editNoteIntent.putExtra("NOTE_ID", noteList.get(position).getId());
+                    context.startActivity(editNoteIntent);
+                }
             }
         });
 
@@ -154,7 +182,7 @@ public class NoteRecyclerViewAdapter extends RecyclerView.Adapter<NoteRecyclerVi
                     selectedItemID.add(noteItems);
                     highlightView(noteViewHolder);
                 }
-                receiver.OnItemLongClick();
+                onItemLongClickReceiver.onItemLongClick();
 
                 return true;
             }
@@ -193,8 +221,9 @@ public class NoteRecyclerViewAdapter extends RecyclerView.Adapter<NoteRecyclerVi
         return noteList.get(position);
     }
 
-    public void setActionModeReceiver(OnItemLongClick receiver) {
-        this.receiver = receiver;
+    public void setActionModeReceiver(OnItemLongClick longClickReceiver,OnItemClick clickReceiver) {
+        this.onItemLongClickReceiver = longClickReceiver;
+        this.onItemClickReceiver = clickReceiver;
     }
 
     public void selectAllNote() {

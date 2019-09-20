@@ -2,10 +2,8 @@ package com.notekeep.andrekelvin.notekeep;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,6 +16,11 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -38,6 +41,10 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
     public static final String REMINDER_REPEAT = "repeat";
     private Bundle reminderValuesBundle;
     private Calendar calendar;
+    private DatabaseReference databaseRef;
+    private FirebaseUser firebaseUser;
+    private String dateTime;
+    private long insertedNoteID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +60,10 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
         linearLayout = findViewById(R.id.linearLayout);
         Toolbar toolbar=findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        databaseRef = FirebaseDatabase.getInstance().getReference("backup");
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        firebaseUser = firebaseAuth.getCurrentUser();
 
         noteDB = new NoteDB(this);
 
@@ -75,7 +86,7 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
                 String title = textTitle.getText().toString().trim();
                 String note = textNote.getText().toString().trim();
                 SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm a dd/MMM/yy", Locale.UK);
-                String dateTime = dateFormat.format(new Date());
+                dateTime = dateFormat.format(new Date());
 
                 if (title.isEmpty() || note.isEmpty()) {
                     Toast.makeText(AddNoteActivity.this, "Empty Note... Insert Your Title and Note", Toast.LENGTH_SHORT).show();
@@ -85,20 +96,23 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
                     //just insert notes and date to db (reminder columns are nullable)
                     //else insert notes,date and reminder values and start alarm
                     if (linearLayout.getVisibility() == View.INVISIBLE) {
-                        noteDB.insertNote(textTitle.getText().toString(), textNote.getText().toString(), dateTime);
+                        //on add back_up value is 0 meaning data isn't backed up
+                        insertedNoteID = noteDB.insertNote(textTitle.getText().toString().trim(),
+                                textNote.getText().toString().trim(),
+                                dateTime,
+                                0);
 
                         finish();
                         Toast.makeText(AddNoteActivity.this, "Note Saved", Toast.LENGTH_SHORT).show();
                     } else {
-                        long insertedID = noteDB.insertNoteReminder(
+                        insertedNoteID = noteDB.insertNoteReminder(
                                 textTitle.getText().toString(),
                                 textNote.getText().toString(),
                                 dateTime,
                                 calendarTimeMillieSec,
                                 pendingIntentID,
-                                reminderRepeatItem);
-
-
+                                reminderRepeatItem,
+                                0);
 
                         //Get inserted Note ID to be passed to broadcast receiver class
                         //Where the notification has Pending Intent that is going to open EditNoteActivity
@@ -108,7 +122,7 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
                         if (reminderRepeatItem.contentEquals("Don't Repeat")) {
                             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                             Intent intent = new Intent(AddNoteActivity.this, ReminderReceiver.class);
-                            intent.putExtra("INSERTED_NOTE_ID",insertedID);
+                            intent.putExtra("INSERTED_NOTE_ID",insertedNoteID);
                             intent.putExtra("TITLE",textTitle.getText().toString());
                             PendingIntent pendingIntent = PendingIntent.getBroadcast(AddNoteActivity.this, pendingIntentID, intent, 0);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -122,7 +136,7 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
                         else if (reminderRepeatItem.contentEquals("Daily")) {
                             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                             Intent intent = new Intent(AddNoteActivity.this, ReminderReceiver.class);
-                            intent.putExtra("INSERTED_NOTE_ID",insertedID);
+                            intent.putExtra("INSERTED_NOTE_ID",insertedNoteID);
                             intent.putExtra("TITLE",textTitle.getText().toString());
                             PendingIntent pendingIntent = PendingIntent.getBroadcast(AddNoteActivity.this, pendingIntentID, intent, 0);
                             alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendarTimeMillieSec, AlarmManager.INTERVAL_DAY, pendingIntent);
@@ -132,7 +146,7 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
                         else if (reminderRepeatItem.contentEquals("Weekly")) {
                             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                             Intent intent = new Intent(AddNoteActivity.this, ReminderReceiver.class);
-                            intent.putExtra("INSERTED_NOTE_ID",insertedID);
+                            intent.putExtra("INSERTED_NOTE_ID",insertedNoteID);
                             intent.putExtra("TITLE",textTitle.getText().toString());
                             PendingIntent pendingIntent = PendingIntent.getBroadcast(AddNoteActivity.this, pendingIntentID, intent, 0);
                             alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendarTimeMillieSec, (AlarmManager.INTERVAL_DAY * 7), pendingIntent);
@@ -167,7 +181,7 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
 
                             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                             Intent intent = new Intent(AddNoteActivity.this, ReminderReceiver.class);
-                            intent.putExtra("INSERTED_NOTE_ID",insertedID);
+                            intent.putExtra("INSERTED_NOTE_ID",insertedNoteID);
                             intent.putExtra("TITLE",textTitle.getText().toString());
                             PendingIntent pendingIntent = PendingIntent.getBroadcast(AddNoteActivity.this, pendingIntentID, intent, 0);
                             alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendarTimeMillieSec, monthInterval, pendingIntent);
@@ -181,7 +195,7 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
 
                             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                             Intent intent = new Intent(AddNoteActivity.this, ReminderReceiver.class);
-                            intent.putExtra("INSERTED_NOTE_ID",insertedID);
+                            intent.putExtra("INSERTED_NOTE_ID",insertedNoteID);
                             intent.putExtra("TITLE",textTitle.getText().toString());
                             PendingIntent pendingIntent = PendingIntent.getBroadcast(AddNoteActivity.this, pendingIntentID, intent, 0);
                             alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendarTimeMillieSec, 0, pendingIntent);
@@ -191,6 +205,8 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
                         finish();
                     }
                     noteDB.close();
+
+                    //new NoteBackupInsect(AddNoteActivity.this).execute();
                 }
                 return true;
             case R.id.addReminder:
@@ -238,4 +254,48 @@ public class AddNoteActivity extends AppCompatActivity implements AddReminderDia
             //Log.d("MY_TAG", calendarTimeMillieSec + "\n" + pendingIntentID + "\n" + reminderRepeatIndex);
         }
     }
+
+    /*private static class NoteBackupInsect extends AsyncTask<Void, Void, Void>{
+
+        private WeakReference<AddNoteActivity> weakReference;
+
+        public NoteBackupInsect(AddNoteActivity addNoteActivity){
+            weakReference = new WeakReference<>(addNoteActivity);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            System.out.println("Do in background");
+            final AddNoteActivity addNoteActivity=weakReference.get();
+            addNoteActivity.noteDB.open();
+            final Cursor cursor=addNoteActivity.noteDB.getAllNotes();
+
+            while (cursor.moveToNext()) {
+                //check if back_up value is 0(which means it's not backed up)
+                //then add data to firebase and change back_up value to 1(which means it's backed up)
+                if (cursor.getInt(7)==0){
+                    //String backUpID=addNoteActivity.databaseRef.push().getKey();
+                    FirebaseBackUp backUp = new FirebaseBackUp(
+                            cursor.getString(1),
+                            cursor.getString(2),
+                            cursor.getString(3),
+                            cursor.getLong(4),
+                            cursor.getInt(5),
+                            cursor.getString(6));
+                    addNoteActivity.databaseRef.child(addNoteActivity.firebaseUser.getUid()+"/"+cursor.getInt(0)).setValue(backUp,
+                            new DatabaseReference.CompletionListener() {
+                                @Override
+                                public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+                                    if (databaseError==null){
+                                        addNoteActivity.noteDB.updateNoteBackUpStatus(cursor.getInt(0),1);
+                                    }
+                                }
+                            });
+                }
+            }
+            addNoteActivity.noteDB.close();
+
+            return null;
+        }
+    }*/
 }

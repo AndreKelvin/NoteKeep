@@ -17,6 +17,7 @@ public class NoteDB {
     private final String REMINDER = "reminder";
     private final String PENDING_INTENT_ID = "pending_intent_id";
     private final String REPEAT_REMINDER = "repeat_reminder";
+    private final String BACK_UP = "back_up";
 
     //Database Name
     private final String DATABASE_NAME = "NoteDb";
@@ -25,17 +26,18 @@ public class NoteDB {
     private static final String DATABASE_TABLE = "Notes";
 
     //Database Version
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 5;
 
     //Create Table Statement to be executed when Db is created
     private static final String DATABASE_CREATE = "create table Notes (" +
             "id integer  primary key autoincrement," +
-            "title text not null," +
-            "note text not null," +
+            "title text not null unique," +
+            "note text not null unique," +
             "date_time text not null," +
             "reminder int," +
             "pending_intent_id int," +
-            "repeat_reminder text)";
+            "repeat_reminder text," +
+            "back_up int not null)";
 
     final Context context;
     private SQLiteDatabase db;
@@ -77,15 +79,17 @@ public class NoteDB {
         db.close();
     }
 
-    public long insertNote(String title, String note, String date_time) {
+    public long insertNote(String title, String note, String date_time, int back_up) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(TITLE, title);
         contentValues.put(NOTE, note);
         contentValues.put(DATE_TIME, date_time);
+        contentValues.put(BACK_UP, back_up);
         return db.insert(DATABASE_TABLE, null, contentValues);
     }
 
-    public long insertNoteReminder(String title, String note, String date_time, long reminder, int pending_intent_id, String repeat_reminder) {
+    public long insertNoteReminder(String title, String note, String date_time, long reminder,
+                                   int pending_intent_id, String repeat_reminder, int back_up) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(TITLE, title);
         contentValues.put(NOTE, note);
@@ -93,12 +97,14 @@ public class NoteDB {
         contentValues.put(REMINDER, reminder);
         contentValues.put(PENDING_INTENT_ID, pending_intent_id);
         contentValues.put(REPEAT_REMINDER, repeat_reminder);
+        contentValues.put(BACK_UP, back_up);
         return db.insert(DATABASE_TABLE, null, contentValues);
     }
 
     public Cursor getAllNotes() {
         return db.query(DATABASE_TABLE,
-                new String[]{NOTE_ID, TITLE, NOTE, DATE_TIME, REMINDER, PENDING_INTENT_ID, REPEAT_REMINDER},
+                new String[]{NOTE_ID, TITLE, NOTE, DATE_TIME, REMINDER, PENDING_INTENT_ID,
+                        REPEAT_REMINDER, BACK_UP},
                 null,
                 null,
                 null,
@@ -108,7 +114,8 @@ public class NoteDB {
 
     public Cursor getAllReminderNotes() {
         return db.query(DATABASE_TABLE,
-                new String[]{NOTE_ID, TITLE, NOTE, DATE_TIME, REMINDER, PENDING_INTENT_ID, REPEAT_REMINDER},
+                new String[]{NOTE_ID, TITLE, NOTE, DATE_TIME, REMINDER, PENDING_INTENT_ID,
+                        REPEAT_REMINDER},
                 REMINDER,
                 null,
                 null,
@@ -138,7 +145,8 @@ public class NoteDB {
     public Cursor getSelectedNote(int noteId) throws SQLException {
         Cursor cursor = db.query(
                 DATABASE_TABLE,
-                new String[]{NOTE_ID, TITLE, NOTE, DATE_TIME, REMINDER, PENDING_INTENT_ID, REPEAT_REMINDER},
+                new String[]{NOTE_ID, TITLE, NOTE, DATE_TIME, REMINDER, PENDING_INTENT_ID,
+                        REPEAT_REMINDER, BACK_UP},
                 NOTE_ID + "=" + noteId,
                 null,
                 null,
@@ -151,7 +159,8 @@ public class NoteDB {
         return cursor;
     }
 
-    public boolean updateNote(int noteId, String title, String note, String date_time, long reminder, int pending_intent_id, String repeat_reminder) {
+    public boolean updateNote(int noteId, String title, String note, String date_time, long reminder,
+                              int pending_intent_id, String repeat_reminder) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(TITLE, title);
         contentValues.put(NOTE, note);
@@ -162,12 +171,9 @@ public class NoteDB {
         return db.update(DATABASE_TABLE, contentValues, NOTE_ID + "=" + noteId, null) > 0;
     }
 
-    //When Save Icon Button is clicked
-    public boolean updateNoteReminder(int noteId, long reminder, int pending_intent_id, String repeat_reminder) {
+    public boolean updateNoteBackUpStatus(int noteId, int back_up) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(REMINDER, reminder);
-        contentValues.put(PENDING_INTENT_ID, pending_intent_id);
-        contentValues.put(REPEAT_REMINDER, repeat_reminder);
+        contentValues.put(BACK_UP, back_up);
         return db.update(DATABASE_TABLE, contentValues, NOTE_ID + "=" + noteId, null) > 0;
     }
 

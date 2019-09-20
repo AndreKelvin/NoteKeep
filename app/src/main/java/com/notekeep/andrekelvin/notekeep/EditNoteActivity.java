@@ -7,8 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -24,11 +27,22 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class EditNoteActivity extends AppCompatActivity implements EditReminderDialogFragment.ReminderValues {
 
@@ -53,6 +67,8 @@ public class EditNoteActivity extends AppCompatActivity implements EditReminderD
     private int selectedNotePendingIntentID;
     private ImageView reminderEditIcon;
     private String selectedTitle, selectedNote, selectedNoteRepeatStatus;
+    private DatabaseReference databaseRef;
+    private FirebaseUser firebaseUser;
 
     /*@Override
     protected void onNewIntent(Intent intent) {
@@ -87,6 +103,10 @@ public class EditNoteActivity extends AppCompatActivity implements EditReminderD
         setSupportActionBar(toolbar);
 
         setTitle("Edit Note");
+
+        databaseRef = FirebaseDatabase.getInstance().getReference("backup");
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        firebaseUser = firebaseAuth.getCurrentUser();
 
         noteDB = new NoteDB(this);
         noteDB.open();
@@ -200,7 +220,13 @@ public class EditNoteActivity extends AppCompatActivity implements EditReminderD
                         finish();
                         Toast.makeText(EditNoteActivity.this, "Note Edited", Toast.LENGTH_SHORT).show();
                     }else {*/
-                    noteDB.updateNote(selectedNoteId, textTitle.getText().toString(), textNote.getText().toString(), dateTime, calendarTimeMillieSec, pendingIntentID, reminderRepeatItem);
+                    noteDB.updateNote(selectedNoteId, textTitle.getText().toString(),
+                            textNote.getText().toString(), dateTime, calendarTimeMillieSec,
+                            pendingIntentID, reminderRepeatItem);
+
+                    //on edit 2 means data has been edited
+                    noteDB.updateNoteBackUpStatus(selectedNoteId,2);
+
                     //noteDB.updateNoteReminder(selectedNoteId,calendarTimeMillieSec,pendingIntentID,reminderRepeatItem);
                     Toast.makeText(EditNoteActivity.this, "Note Edited", Toast.LENGTH_SHORT).show();
 
@@ -303,6 +329,8 @@ public class EditNoteActivity extends AppCompatActivity implements EditReminderD
                     }
                     noteDB.close();
 
+                    //new NoteBackupUpdate(EditNoteActivity.this).execute();
+
                     finish();
                 }
                 return true;
@@ -391,4 +419,65 @@ public class EditNoteActivity extends AppCompatActivity implements EditReminderD
             //Log.d("MY_TAG", calendarTimeMillieSec + "\n" + pendingIntentID + "\n" + reminderRepeatIndex);
         }
     }
+
+    /*private static class NoteBackupUpdate extends AsyncTask<Void, Void, Void> {
+
+        private WeakReference<EditNoteActivity> weakReference;
+
+        public NoteBackupUpdate(EditNoteActivity editNoteActivity){
+            weakReference = new WeakReference<>(editNoteActivity);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            final EditNoteActivity editNoteActivity=weakReference.get();
+
+            *//*editNoteActivity.databaseRef.child(editNoteActivity.firebaseUser.getUid()).removeValue();
+
+            Cursor cursor=editNoteActivity.noteDB.getAllNotes();
+            while (cursor.moveToNext()) {
+                FirebaseBackUp backUp=new FirebaseBackUp(
+                        cursor.getString(1),
+                        cursor.getString(2),
+                        cursor.getString(3),
+                        cursor.getLong(4),
+                        cursor.getInt(5),
+                        cursor.getString(6));
+                String backUpID=editNoteActivity.databaseRef.push().getKey();
+                editNoteActivity.databaseRef.child(editNoteActivity.firebaseUser.getUid()+"/backupID"+backUpID).setValue(backUp);
+            }*//*
+
+            editNoteActivity.noteDB.open();
+
+            Map<String, Object> updates = new HashMap<>();
+
+            final Cursor cursor=editNoteActivity.noteDB.getAllNotes();
+            while (cursor.moveToNext()) {
+                //check if back_up value is 2(which means it was edited)
+                //then update firebase data and change back_up value to 1(which means it's backed up)
+                if (cursor.getInt(7) == 2) {
+                    //String backUpID=addNoteActivity.databaseRef.push().getKey();
+                    updates.put("title",cursor.getString(1));
+                    updates.put("note",cursor.getString(2));
+                    updates.put("dateTime",cursor.getString(3));
+                    updates.put("reminder",cursor.getLong(4));
+                    updates.put("pendingIntentId",cursor.getInt(5));
+                    updates.put("repeatReminder",cursor.getString(6));
+                    editNoteActivity.databaseRef.child(editNoteActivity.firebaseUser.getUid()).child(String.valueOf(cursor.getInt(0))).updateChildren(updates,
+                            new DatabaseReference.CompletionListener() {
+                                @Override
+                                public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+                                    if (databaseError==null){
+                                        editNoteActivity.noteDB.updateNoteBackUpStatus(cursor.getInt(0),1);
+                                    }
+                                }
+                            });
+                }
+            }
+            editNoteActivity.noteDB.close();
+
+            return null;
+        }
+    }*/
+
 }

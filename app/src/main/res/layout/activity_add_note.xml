@@ -23,7 +23,8 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_notifications" />
+            android:src="@drawable/ic_notifications"
+            android:contentDescription="@string/add_note_reminder_icon" />
 
         <TextView
             android:id="@+id/textReminderTimeDate"
@@ -45,7 +46,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:ems="10"
-        android:hint="Title"
+        android:hint="@string/add_note_hint_title"
         android:inputType="textMultiLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -70,7 +71,7 @@
         android:gravity="start"
         android:scrollbars="vertical"
         android:background="@null"
-        android:hint="Note"/>
+        android:hint="@string/add_note_hint_note"/>
 
     <!--<android.support.design.widget.FloatingActionButton
         android:id="@+id/fabSaveNote"

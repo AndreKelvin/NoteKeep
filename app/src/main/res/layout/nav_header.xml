@@ -12,13 +12,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:src="@mipmap/ic_launcher_round"
-        android:paddingTop="16dp"/>
+        android:paddingTop="16dp"
+        android:contentDescription="@string/note_keep_logo" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="47dp"
         android:gravity="bottom|center"
-        android:text="Note Keep"
+        android:text="@string/nav_header_note_keep"
         android:textColor="#FFF"
         android:textSize="24sp"
         android:textStyle="bold" />

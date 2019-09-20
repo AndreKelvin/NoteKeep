@@ -4,11 +4,14 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BaseTransientBottomBar;
@@ -36,13 +39,16 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
-public class MainActivity extends AppCompatActivity implements NoteRecyclerViewAdapter.OnItemLongClick {
+public class MainActivity extends AppCompatActivity implements NoteRecyclerViewAdapter.OnItemLongClick,NoteRecyclerViewAdapter.OnItemClick {
 
     private TextView textNoNote;
     private RecyclerView recyclerView;
@@ -56,10 +62,14 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
     private ActionMode actionMode;
     private Snackbar snackbar;
     private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
     private final String LINEAR_TO_GRID_LAYOUT = "com.example.andrekelvin.notekeep_change_layout";
+    public static final String ITEM_IS_LONG_CLICKED="itemIsLongClicked";
     private String selectedLayout;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
+    private FirebaseUser firebaseUser;
+    private BackupReceiver backupReceiver;
     //private Paint p;
 
     @Override
@@ -74,6 +84,9 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
         drawerLayout=findViewById(R.id.drawerLayout);
         navigationView=findViewById(R.id.navView);
         Toolbar toolbar=findViewById(R.id.toolbar);
+
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        firebaseUser = firebaseAuth.getCurrentUser();
 
         setSupportActionBar(toolbar);
 
@@ -95,6 +108,9 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
         deletedID = new ArrayList<>();
         deleteDate = new ArrayList<>();
 
+        backupReceiver=new BackupReceiver();
+        registerNetworkBroadcastForNougatAbove();
+
         /*p = new Paint();
         p.setColor(Color.RED);*/
 
@@ -113,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
         viewAdapter = new NoteRecyclerViewAdapter(noteList, this, selectedItemID);
         recyclerView.setAdapter(viewAdapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL));
-        viewAdapter.setActionModeReceiver(this);
+        viewAdapter.setActionModeReceiver(this,this);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -218,6 +234,7 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
                                 //Toast.makeText(MainActivity.this, "Reminder Canceled", Toast.LENGTH_SHORT).show();
                             }
                             noteDB.deleteNote(deletedID.get(0));
+                            System.out.println("Deleted ID:"+deletedID.get(0));
                             noteDB.close();
                         }
                     }
@@ -251,6 +268,16 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
                         displayAllReminderNote();
                         drawerLayout.closeDrawers();
                         return true;
+
+                    case R.id.backUpNote:
+                        menuItem.setChecked(true);
+                        if (firebaseUser==null){
+                            startActivity(new Intent(MainActivity.this,SignUpActivity.class));
+                        }else {
+                            startActivity(new Intent(MainActivity.this,BackUpActivity.class));
+                        }
+                        drawerLayout.closeDrawers();
+                        return true;
                 }
 
                 return false;
@@ -279,6 +306,8 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
         } else {
             displayAllNote();
         }
+
+        disableItemClick();
     }
 
     private void displayAllNote() {
@@ -394,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
     //and menu icon from Grid to Linear and Linear to Grid
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor = sharedPreferences.edit();
         if (item.getItemId() == R.id.linear_grid_layout) {
             if (grid) {
                 item.setIcon(R.drawable.ic_view_headline);
@@ -434,7 +463,8 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
             switch (menuItem.getItemId()) {
                 case R.id.deleteIcon:
                     new DeleteNote(MainActivity.this).execute();
-                    return true;
+
+                    disableItemClick();
 
                 case R.id.selectAll:
                     viewAdapter.selectAllNote();
@@ -443,6 +473,8 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
                 case R.id.unSelectAll:
                     viewAdapter.unSelectAllNote();
                     actionMode.finish();
+
+                    disableItemClick();
                     return true;
 
                 default:
@@ -458,13 +490,28 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
     };
 
     @Override
-    public void OnItemLongClick() {
+    public void onItemLongClick() {
         if (actionMode == null) {
             actionMode = startSupportActionMode(actionModeCallback);
+
+            editor=sharedPreferences.edit();
+            editor.putBoolean(ITEM_IS_LONG_CLICKED,true);
+            editor.apply();
         } else {
             if (selectedItemID.isEmpty()) {
                 actionMode.finish();
+
+                disableItemClick();
             }
+        }
+    }
+
+    @Override
+    public void onItemClick() {
+        if (selectedItemID.isEmpty()) {
+            actionMode.finish();
+
+            disableItemClick();
         }
     }
 
@@ -476,6 +523,17 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
             textNoNote.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
         }
+    }
+
+    /**
+     * when item on the recycler is unselected/unHighlighted
+     * this change the shared Preferences value to false
+     * which means no item is long clicked
+     */
+    private void disableItemClick(){
+        editor=sharedPreferences.edit();
+        editor.putBoolean(ITEM_IS_LONG_CLICKED,false);
+        editor.apply();
     }
 
     private static class DeleteNote extends AsyncTask<Void, Void, Void> {
@@ -544,6 +602,7 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
                                 //Toast.makeText(activity, "Reminder Canceled", Toast.LENGTH_SHORT).show();
                             }
                             activity.noteDB.deleteNote(selectedNoteID.get(i).getId());
+                            //activity.databaseRef.child(activity.firebaseUser.getUid()+"/"+selectedNoteID.get(i).getId()).removeValue();
                         }
                         activity.noteDB.close();
                         //activity.selectedNotePosition.clear();
@@ -582,6 +641,18 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
             });
             activity.snackbar.show();
         }
+    }
+
+    private void registerNetworkBroadcastForNougatAbove() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            registerReceiver(backupReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(backupReceiver);
     }
 
 }

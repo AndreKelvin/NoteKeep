@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "625078378849",
+    "firebase_url": "https://notekeep-dcc10.firebaseio.com",
+    "project_id": "notekeep-dcc10",
+    "storage_bucket": "notekeep-dcc10.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:625078378849:android:1350d8276a7137784a2520",
+        "android_client_info": {
+          "package_name": "com.notekeep.andrekelvin.notekeep"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "625078378849-hn76cpiru6onfvhcgrg6fs9sa19g81a7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.notekeep.andrekelvin.notekeep",
+            "certificate_hash": "348d9e5fa51356acab6bc4e595c8327be0719702"
+          }
+        },
+        {
+          "client_id": "625078378849-fh7vrqgki8i9kdpammu4dg343h2svcri.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXOcvuOpztyO_FWgkg7893gbfUkHR-Ntc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "625078378849-fh7vrqgki8i9kdpammu4dg343h2svcri.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
