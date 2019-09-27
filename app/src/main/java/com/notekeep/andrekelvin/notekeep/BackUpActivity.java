@@ -76,8 +76,6 @@ public class BackUpActivity extends AppCompatActivity {
 
     public void logout(View view) {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        FirebaseUser firebaseUser=firebaseAuth.getCurrentUser();
-        firebaseUser=null;
         firebaseAuth.signOut();
         finish();
         startActivity(new Intent(this,LoginActivity.class));

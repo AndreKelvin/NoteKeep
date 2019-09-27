@@ -85,8 +85,7 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
         navigationView=findViewById(R.id.navView);
         Toolbar toolbar=findViewById(R.id.toolbar);
 
-        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseAuth.getCurrentUser();
+        final FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
 
         setSupportActionBar(toolbar);
 
@@ -271,8 +270,9 @@ public class MainActivity extends AppCompatActivity implements NoteRecyclerViewA
 
                     case R.id.backUpNote:
                         menuItem.setChecked(true);
+                        firebaseUser = firebaseAuth.getCurrentUser();
                         if (firebaseUser==null){
-                            startActivity(new Intent(MainActivity.this,SignUpActivity.class));
+                            startActivity(new Intent(MainActivity.this,LoginActivity.class));
                         }else {
                             startActivity(new Intent(MainActivity.this,BackUpActivity.class));
                         }

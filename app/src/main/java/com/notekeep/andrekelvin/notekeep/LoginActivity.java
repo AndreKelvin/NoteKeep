@@ -75,4 +75,9 @@ public class LoginActivity extends AppCompatActivity {
     public void forgetPassword(View view) {
         startActivity(new Intent(this,ResetPasswordActivity.class));
     }
+
+    public void signUpNow(View view) {
+        finish();
+        startActivity(new Intent(this,SignUpActivity.class));
+    }
 }
