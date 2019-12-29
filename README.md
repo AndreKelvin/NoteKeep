@@ -1,5 +1,6 @@
 # NoteKeep
 Note Keep is a easy and simple note app that you can use for quick note taking with a Note Reminder,Back up and Restore feature
+it uses Firebase Realtime Database for Back up and Restore
 ## Some Screen Shots
 <img src="https://user-images.githubusercontent.com/39889856/71550005-4c169300-29c7-11ea-91f6-325d5edd139b.png" width=300 align=left>
 <img src="https://user-images.githubusercontent.com/39889856/71550064-47061380-29c8-11ea-99c9-b2bb78ecc940.png" width=300 align=left>
